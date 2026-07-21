@@ -2187,7 +2187,7 @@ body.content-open .preloader {
                 </svg>
             </div>
             <div class="bottom">
-                <div class="wedding">Wedding</div>
+                <div class="wedding">Widding</div>
                 <button class="open">اضغط لفتح الدعوة</button>
             </div>
         </div>
@@ -2484,7 +2484,6 @@ body.content-open .preloader {
         const RSVP_API_URL = '/api/rsvp';
         const LEGACY_STORAGE_KEY = 'wedding_rsvp_responses';
         const LEGACY_MIGRATION_KEY = 'wedding_rsvp_legacy_migrated_v1';
-        const ADMIN_SESSION_KEY = 'wedding_rsvp_admin_key';
 
         function createSubmissionId() {
             if (window.crypto && typeof window.crypto.randomUUID === 'function') {
@@ -2531,12 +2530,9 @@ body.content-open .preloader {
             });
         }
 
-        async function getResponses(adminKey) {
+        async function getResponses() {
             const payload = await apiFetch({
-                method: 'GET',
-                headers: {
-                    'x-admin-key': adminKey
-                }
+                method: 'GET'
             });
 
             return Array.isArray(payload?.responses) ? payload.responses : [];
@@ -2631,19 +2627,6 @@ body.content-open .preloader {
         let adminRefreshTimer = null;
         let adminRequestInProgress = false;
 
-        function getAdminKey() {
-            let key = sessionStorage.getItem(ADMIN_SESSION_KEY) || '';
-
-            if (!key) {
-                key = window.prompt('أدخل كلمة مرور لوحة الحضور:') || '';
-                if (key) {
-                    sessionStorage.setItem(ADMIN_SESSION_KEY, key);
-                }
-            }
-
-            return key;
-        }
-
         function setAdminEmpty(message, icon = '🕊️') {
             const empty = document.getElementById('adminEmpty');
             empty.innerHTML = `<span>${icon}</span>${escapeHtml(message)}`;
@@ -2699,19 +2682,13 @@ body.content-open .preloader {
                 return;
             }
 
-            const adminKey = getAdminKey();
-            if (!adminKey) {
-                setAdminEmpty('يلزم إدخال كلمة مرور لوحة الحضور.', '🔒');
-                return;
-            }
-
             adminRequestInProgress = true;
             const tbody = document.getElementById('adminTableBody');
             const empty = document.getElementById('adminEmpty');
 
             try {
                 await migrateLegacyResponses();
-                const responses = await getResponses(adminKey);
+                const responses = await getResponses();
 
                 const total = responses.length;
                 const coming = responses.filter(r => r.attending === true).length;
@@ -2746,13 +2723,7 @@ body.content-open .preloader {
                 console.error('Admin load failed:', error);
                 tbody.innerHTML = '';
 
-                if (error.status === 401) {
-                    sessionStorage.removeItem(ADMIN_SESSION_KEY);
-                    setAdminEmpty('كلمة المرور غير صحيحة. أعد فتح لوحة الإدارة وحاول مجدداً.', '🔒');
-                    stopAdminAutoRefresh();
-                } else {
-                    setAdminEmpty('تعذّر تحميل الردود. تحقق من الاتصال وإعدادات الخادم.', '⚠️');
-                }
+                setAdminEmpty('تعذّر تحميل الردود. تحقق من الاتصال وإعدادات الخادم.', '⚠️');
             } finally {
                 adminRequestInProgress = false;
             }
@@ -2793,10 +2764,7 @@ body.content-open .preloader {
             document.body.style.overflowY = 'auto';
 
             await renderAdmin();
-
-            if (sessionStorage.getItem(ADMIN_SESSION_KEY)) {
-                startAdminAutoRefresh();
-            }
+            startAdminAutoRefresh();
         }
 
         function showMain() {
