@@ -1,5 +1,3 @@
-
-import { timingSafeEqual } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 
 const MAX_NAME_LENGTH = 100;
@@ -43,24 +41,6 @@ function parseBody(body) {
   }
 
   return body;
-}
-
-function secureEqual(left, right) {
-  const leftBuffer = Buffer.from(String(left || ''), 'utf8');
-  const rightBuffer = Buffer.from(String(right || ''), 'utf8');
-
-  if (leftBuffer.length === 0 || leftBuffer.length !== rightBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(leftBuffer, rightBuffer);
-}
-
-function isAuthorizedAdmin(req) {
-  const configuredKey = process.env.RSVP_ADMIN_KEY;
-  const providedKey = req.headers['x-admin-key'];
-
-  return Boolean(configuredKey) && secureEqual(providedKey, configuredKey);
 }
 
 function validateSubmission(body) {
@@ -140,13 +120,6 @@ async function handlePost(req, res) {
 }
 
 async function handleGet(req, res) {
-  if (!isAuthorizedAdmin(req)) {
-    return json(res, 401, {
-      ok: false,
-      message: 'كلمة مرور لوحة الحضور غير صحيحة.'
-    });
-  }
-
   const database = getDatabase();
   const { data, error } = await database
     .from('rsvp_responses')
