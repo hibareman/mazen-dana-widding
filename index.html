@@ -2479,31 +2479,67 @@ body.content-open .preloader {
 
     <script>
         // ============================================================
-        //  DATA LAYER – localStorage
+        //  DATA LAYER – CENTRAL API (Vercel Function + Supabase)
         // ============================================================
-        const STORAGE_KEY = 'wedding_rsvp_responses';
+        const RSVP_API_URL = '/api/rsvp';
+        const LEGACY_STORAGE_KEY = 'wedding_rsvp_responses';
+        const LEGACY_MIGRATION_KEY = 'wedding_rsvp_legacy_migrated_v1';
+        const ADMIN_SESSION_KEY = 'wedding_rsvp_admin_key';
 
-        function getResponses() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                return raw ? JSON.parse(raw) : [];
-            } catch (_) { return []; }
+        function createSubmissionId() {
+            if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                return window.crypto.randomUUID();
+            }
+            return `${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
         }
 
-        function saveResponses(list) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-        }
-
-        function addResponse(name, attending, message) {
-            const list = getResponses();
-            list.push({
-                id: Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-                name: name.trim(),
-                attending: attending,
-                message: message.trim(),
-                createdAt: new Date().toISOString()
+        async function apiFetch(options = {}) {
+            const response = await fetch(RSVP_API_URL, {
+                cache: 'no-store',
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                }
             });
-            saveResponses(list);
+
+            let payload = null;
+            try {
+                payload = await response.json();
+            } catch (_) {
+                payload = null;
+            }
+
+            if (!response.ok) {
+                const error = new Error(payload?.message || 'تعذّر الاتصال بالخادم.');
+                error.status = response.status;
+                throw error;
+            }
+
+            return payload;
+        }
+
+        async function addResponse(name, attending, message, clientSubmissionId) {
+            return apiFetch({
+                method: 'POST',
+                body: JSON.stringify({
+                    name: name.trim(),
+                    attending,
+                    message: message.trim(),
+                    clientSubmissionId
+                })
+            });
+        }
+
+        async function getResponses(adminKey) {
+            const payload = await apiFetch({
+                method: 'GET',
+                headers: {
+                    'x-admin-key': adminKey
+                }
+            });
+
+            return Array.isArray(payload?.responses) ? payload.responses : [];
         }
 
         // ============================================================
@@ -2516,12 +2552,14 @@ body.content-open .preloader {
         const rsvpSuccess = document.getElementById('rsvpSuccess');
 
         let selectedAttendance = null;
+        let pendingSubmissionId = null;
 
         toggleBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 toggleBtns.forEach(b => {
                     b.classList.remove('active-yes', 'active-no');
                 });
+
                 const val = this.dataset.value;
                 if (val === 'yes') {
                     this.classList.add('active-yes');
@@ -2530,11 +2568,12 @@ body.content-open .preloader {
                     this.classList.add('active-no');
                     selectedAttendance = false;
                 }
+
                 rsvpSuccess.classList.remove('show');
             });
         });
 
-        rsvpSubmit.addEventListener('click', function(e) {
+        rsvpSubmit.addEventListener('click', async function(e) {
             e.preventDefault();
 
             const name = rsvpName.value.trim();
@@ -2543,22 +2582,40 @@ body.content-open .preloader {
                 rsvpName.focus();
                 return;
             }
+
             if (selectedAttendance === null) {
                 alert('الرجاء اختيار هل ستتمكن من الحضور أم لا.');
                 return;
             }
 
             const message = rsvpMessage.value.trim();
-            addResponse(name, selectedAttendance, message);
+            pendingSubmissionId = pendingSubmissionId || createSubmissionId();
 
-            rsvpSuccess.classList.add('show');
-            rsvpMessage.value = '';
-            toggleBtns.forEach(b => b.classList.remove('active-yes', 'active-no'));
-            selectedAttendance = null;
-
+            const originalText = rsvpSubmit.textContent;
             rsvpSubmit.disabled = true;
-            setTimeout(() => { rsvpSubmit.disabled = false; }, 1800);
-            rsvpSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            rsvpSubmit.textContent = 'جارٍ الإرسال...';
+            rsvpSuccess.classList.remove('show');
+
+            try {
+                await addResponse(name, selectedAttendance, message, pendingSubmissionId);
+
+                pendingSubmissionId = null;
+                rsvpSuccess.textContent = '✅ تم إرسال ردّك وحفظه بنجاح!';
+                rsvpSuccess.classList.add('show');
+
+                rsvpName.value = '';
+                rsvpMessage.value = '';
+                toggleBtns.forEach(b => b.classList.remove('active-yes', 'active-no'));
+                selectedAttendance = null;
+
+                rsvpSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } catch (error) {
+                console.error('RSVP submit failed:', error);
+                alert(error.message || 'تعذّر إرسال الرد. تحقق من الإنترنت وحاول مجدداً.');
+            } finally {
+                rsvpSubmit.disabled = false;
+                rsvpSubmit.textContent = originalText;
+            }
         });
 
         rsvpName.addEventListener('keydown', function(e) {
@@ -2569,34 +2626,114 @@ body.content-open .preloader {
         });
 
         // ============================================================
-        //  ADMIN PANEL – RENDER
+        //  ADMIN PANEL – REMOTE DATA + AUTO REFRESH
         // ============================================================
-        function renderAdmin() {
-            const responses = getResponses();
-            const total = responses.length;
-            const coming = responses.filter(r => r.attending === true).length;
-            const notComing = responses.filter(r => r.attending === false).length;
+        let adminRefreshTimer = null;
+        let adminRequestInProgress = false;
 
-            document.getElementById('statTotal').textContent = total;
-            document.getElementById('statComing').textContent = coming;
-            document.getElementById('statNotComing').textContent = notComing;
+        function getAdminKey() {
+            let key = sessionStorage.getItem(ADMIN_SESSION_KEY) || '';
 
+            if (!key) {
+                key = window.prompt('أدخل كلمة مرور لوحة الحضور:') || '';
+                if (key) {
+                    sessionStorage.setItem(ADMIN_SESSION_KEY, key);
+                }
+            }
+
+            return key;
+        }
+
+        function setAdminEmpty(message, icon = '🕊️') {
+            const empty = document.getElementById('adminEmpty');
+            empty.innerHTML = `<span>${icon}</span>${escapeHtml(message)}`;
+            empty.style.display = 'block';
+        }
+
+        async function migrateLegacyResponses() {
+            if (localStorage.getItem(LEGACY_MIGRATION_KEY) === '1') {
+                return;
+            }
+
+            let legacyResponses = [];
+            try {
+                const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+                legacyResponses = raw ? JSON.parse(raw) : [];
+            } catch (_) {
+                legacyResponses = [];
+            }
+
+            legacyResponses = Array.isArray(legacyResponses)
+                ? legacyResponses.filter(item => String(item?.name || '').trim())
+                : [];
+
+            if (legacyResponses.length === 0) {
+                localStorage.setItem(LEGACY_MIGRATION_KEY, '1');
+                return;
+            }
+
+            const shouldMigrate = window.confirm(
+                `تم العثور على ${legacyResponses.length} رد محفوظ سابقاً على هذا الجهاز. هل تريد نقلها إلى قاعدة البيانات المشتركة؟`
+            );
+
+            if (!shouldMigrate) {
+                return;
+            }
+
+            for (const response of legacyResponses) {
+                await addResponse(
+                    String(response.name || ''),
+                    response.attending === true,
+                    String(response.message || ''),
+                    String(response.id || createSubmissionId())
+                );
+            }
+
+            localStorage.setItem(LEGACY_MIGRATION_KEY, '1');
+            localStorage.removeItem(LEGACY_STORAGE_KEY);
+            alert('تم نقل الردود القديمة إلى قاعدة البيانات المشتركة بنجاح.');
+        }
+
+        async function renderAdmin() {
+            if (adminRequestInProgress) {
+                return;
+            }
+
+            const adminKey = getAdminKey();
+            if (!adminKey) {
+                setAdminEmpty('يلزم إدخال كلمة مرور لوحة الحضور.', '🔒');
+                return;
+            }
+
+            adminRequestInProgress = true;
             const tbody = document.getElementById('adminTableBody');
             const empty = document.getElementById('adminEmpty');
 
-            if (total === 0) {
-                tbody.innerHTML = '';
-                empty.style.display = 'block';
-                return;
-            }
-            empty.style.display = 'none';
+            try {
+                await migrateLegacyResponses();
+                const responses = await getResponses(adminKey);
 
-            const sorted = [...responses].reverse();
-            tbody.innerHTML = sorted.map((r, idx) => {
-                const statusText = r.attending ? '✅ سيأتي' : '❌ لن يأتي';
-                const badgeClass = r.attending ? 'yes' : 'no';
-                const msg = r.message || '—';
-                return `
+                const total = responses.length;
+                const coming = responses.filter(r => r.attending === true).length;
+                const notComing = responses.filter(r => r.attending === false).length;
+
+                document.getElementById('statTotal').textContent = total;
+                document.getElementById('statComing').textContent = coming;
+                document.getElementById('statNotComing').textContent = notComing;
+
+                if (total === 0) {
+                    tbody.innerHTML = '';
+                    setAdminEmpty('لا توجد ردود حتى الآن');
+                    return;
+                }
+
+                empty.style.display = 'none';
+                tbody.innerHTML = responses.map((r, idx) => {
+                    const statusText = r.attending ? '✅ سيأتي' : '❌ لن يأتي';
+                    const badgeClass = r.attending ? 'yes' : 'no';
+                    const msg = r.message || '—';
+
+                    return `
                         <tr>
                             <td>${idx + 1}</td>
                             <td><strong>${escapeHtml(r.name)}</strong></td>
@@ -2604,13 +2741,41 @@ body.content-open .preloader {
                             <td><span class="msg-preview" title="${escapeHtml(msg)}">${escapeHtml(msg)}</span></td>
                         </tr>
                     `;
-            }).join('');
+                }).join('');
+            } catch (error) {
+                console.error('Admin load failed:', error);
+                tbody.innerHTML = '';
+
+                if (error.status === 401) {
+                    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+                    setAdminEmpty('كلمة المرور غير صحيحة. أعد فتح لوحة الإدارة وحاول مجدداً.', '🔒');
+                    stopAdminAutoRefresh();
+                } else {
+                    setAdminEmpty('تعذّر تحميل الردود. تحقق من الاتصال وإعدادات الخادم.', '⚠️');
+                }
+            } finally {
+                adminRequestInProgress = false;
+            }
+        }
+
+        function startAdminAutoRefresh() {
+            stopAdminAutoRefresh();
+            adminRefreshTimer = window.setInterval(() => {
+                void renderAdmin();
+            }, 5000);
+        }
+
+        function stopAdminAutoRefresh() {
+            if (adminRefreshTimer) {
+                window.clearInterval(adminRefreshTimer);
+                adminRefreshTimer = null;
+            }
         }
 
         function escapeHtml(str) {
             if (!str) return '';
             const div = document.createElement('div');
-            div.textContent = str;
+            div.textContent = String(str);
             return div.innerHTML;
         }
 
@@ -2621,15 +2786,21 @@ body.content-open .preloader {
         const adminPanel = document.getElementById('adminPanel');
         const adminBack = document.getElementById('adminBack');
 
-        function showAdmin() {
+        async function showAdmin() {
             mainContent.style.display = 'none';
             adminPanel.classList.add('active');
-            renderAdmin();
             document.body.classList.add('content-open');
             document.body.style.overflowY = 'auto';
+
+            await renderAdmin();
+
+            if (sessionStorage.getItem(ADMIN_SESSION_KEY)) {
+                startAdminAutoRefresh();
+            }
         }
 
         function showMain() {
+            stopAdminAutoRefresh();
             mainContent.style.display = 'block';
             adminPanel.classList.remove('active');
             document.body.style.overflowY = 'auto';
@@ -2774,9 +2945,7 @@ body.content-open .preloader {
             preloader.style.opacity = '0';
             preloader.style.visibility = 'hidden';
             document.body.classList.add('content-open');
-            mainContent.style.display = 'none';
-            adminPanel.classList.add('active');
-            renderAdmin();
+            void showAdmin();
         } else {
             preloader.style.display = 'flex';
             preloader.style.opacity = '1';
