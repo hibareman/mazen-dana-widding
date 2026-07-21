@@ -1120,7 +1120,7 @@
         }
 
         /* ============================================================
-                   FOOTER – مع خاتم الزفاف بدل &
+                   FOOTER
                    ============================================================ */
         .footer-section {
             opacity: 0;
@@ -1136,6 +1136,8 @@
             position: relative;
             overflow: hidden;
             text-align: center;
+            clear: both;
+            z-index: 1;
         }
         .footer-section.show {
             opacity: 1;
@@ -1265,7 +1267,6 @@
             opacity: 0.7;
         }
 
-        /* أسماء العرسان مع خاتم الزفاف بدل & */
         .footer-names {
             font-size: 68px;
             font-weight: 700;
@@ -1323,35 +1324,15 @@
             font-weight: 400;
             color: #7a5d3a;
             letter-spacing: 4px;
-            margin-bottom: 8px;
-        }
-        .footer-date span {
-            color: #a67c4e;
-            font-weight: 700;
-            font-size: 34px;
+            margin-bottom: 4px;
         }
 
-        .footer-aman {
-            font-size: 34px;
-            font-weight: 300;
-            color: #b09880;
-            letter-spacing: 8px;
-            margin-top: 14px;
-            position: relative;
-        }
-        .footer-aman::before {
-            content: "✦";
-            margin-left: 14px;
-            font-size: 18px;
-            color: #c8a45d;
-            opacity: 0.4;
-        }
-        .footer-aman::after {
-            content: "✦";
-            margin-right: 14px;
-            font-size: 18px;
-            color: #c8a45d;
-            opacity: 0.4;
+        .footer-day {
+            font-size: 28px;
+            font-weight: 400;
+            color: #7a5d3a;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
         }
 
         .footer-dove-icon {
@@ -1628,7 +1609,7 @@
             }
         }
 
-        /* ===== مشغل الموسيقى - تصميم ذهبي أنيق ===== */
+        /* ===== مشغل الموسيقى - تصميم ذهبي ===== */
         #musicPlayer {
             position: fixed;
             bottom: 30px;
@@ -1705,104 +1686,6 @@
             margin-left: 4px;
             opacity: 0.6;
         }
-        /* ===== مشغل الموسيقى - تصميم ذهبي أنيق ===== */
-#musicPlayer {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 99999;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.6s ease, visibility 0.6s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform: translateY(30px) scale(0.9);
-    background: rgba(20, 15, 10, 0.88);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding: 10px 16px 10px 18px;
-    border-radius: 60px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid rgba(232, 189, 85, 0.35);
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(232, 189, 85, 0.06);
-    direction: ltr;
-    cursor: pointer;
-}
-#musicPlayer.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-}
-#musicPlayer:hover {
-    border-color: rgba(232, 189, 85, 0.6);
-    box-shadow: 0 8px 50px rgba(0, 0, 0, 0.6), 0 0 60px rgba(232, 189, 85, 0.12);
-}
-#musicToggle {
-    background: none;
-    border: none;
-    color: #e8bd55;
-    font-size: 22px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-    padding: 0;
-    background: rgba(232, 189, 85, 0.1);
-    border: 1px solid rgba(232, 189, 85, 0.15);
-    flex-shrink: 0;
-}
-#musicToggle:hover {
-    background: rgba(232, 189, 85, 0.2);
-    transform: scale(1.05);
-    border-color: #e8bd55;
-}
-#musicToggle:active {
-    transform: scale(0.9);
-}
-#musicLabel {
-    color: #d4c4b0;
-    font-size: 13px;
-    font-family: 'Amiri', serif;
-    white-space: nowrap;
-    letter-spacing: 0.5px;
-    opacity: 0.85;
-    font-weight: 400;
-}
-#musicLabel .heart {
-    color: #e8bd55;
-    display: inline-block;
-}
-.music-icon-symbol {
-    display: inline-block;
-    font-size: 14px;
-    margin-left: 4px;
-    opacity: 0.6;
-}
-
-@media(max-width:480px) {
-    #musicPlayer {
-        bottom: 18px;
-        right: 18px;
-        padding: 8px 12px 8px 14px;
-        gap: 8px;
-        border-radius: 50px;
-    }
-    #musicToggle {
-        font-size: 18px;
-        width: 30px;
-        height: 30px;
-    }
-    #musicLabel {
-        font-size: 11px;
-    }
-    #musicLabel .music-icon-symbol {
-        font-size: 12px;
-    }
-}
 
         @media(max-width:480px) {
             #musicPlayer {
@@ -1980,12 +1863,8 @@
                 font-size: 24px;
                 letter-spacing: 2px;
             }
-            .footer-date span {
-                font-size: 28px;
-            }
-            .footer-aman {
-                font-size: 28px;
-                letter-spacing: 4px;
+            .footer-day {
+                font-size: 22px;
             }
             .footer-hearts {
                 font-size: 22px;
@@ -2197,12 +2076,8 @@
                 font-size: 18px;
                 letter-spacing: 1px;
             }
-            .footer-date span {
-                font-size: 22px;
-            }
-            .footer-aman {
-                font-size: 22px;
-                letter-spacing: 3px;
+            .footer-day {
+                font-size: 16px;
             }
             .footer-hearts {
                 font-size: 16px;
@@ -2221,7 +2096,6 @@
                 font-size: 20px;
                 letter-spacing: 4px;
             }
-
             .footer-ornament {
                 font-size: 10px;
                 gap: 6px;
@@ -2339,7 +2213,12 @@
         <section class="story-section" id="storySection">
             <div class="story-container">
                 <div class="story-decor story-title">رسالة بمحبّة</div>
-                <div class="story-text">حرصاً على أن تكون ليلتنا بالغة الأثروتقديراً لراحة الجميع وتبعاً لسياسة المطاعم في استقبال الضيوف يُرجى الاحتفاظ بالأطفال دون السادسة عشرةفي أحضان المنزل هذه الليلة.نُقدّر تفهّمكم وحُسن تعاونكم.
+                <div class="story-text">حرصاً على أن تكون ليلتنا بالغة الأثر
+                    وتقديراً لراحة الجميع
+                    وتبعاً لسياسة المطاعم في استقبال الضيوف
+                    يُرجى الاحتفاظ بالأطفال دون السادسة عشرة
+                    في أحضان المنزل هذه الليلة.
+                    نُقدّر تفهّمكم وحُسن تعاونكم.
                 </div>
                 <div class="story-heart">♥</div>
             </div>
@@ -2375,9 +2254,18 @@
         </section>
 
         <!-- ==========================================================
-        FOOTER – مع خاتم الزفاف بدل &
+        FOOTER
         ========================================================== -->
-       
+        <section class="footer-section" id="footerSection">
+            <div class="footer-doves">
+                <span class="dove">🕊</span>
+                <span class="dove">🕊</span>
+                <span class="dove">🕊</span>
+                <span class="dove">🕊</span>
+                <span class="dove">🕊</span>
+                <span class="dove">🕊</span>
+                <span class="dove">🕊</span>
+            </div>
 
             <div class="footer-container">
                 <!-- زخرفة علوية -->
@@ -2387,35 +2275,39 @@
                     <span class="line"></span>
                 </div>
 
-                <!-- قلوب ثابتة -->
-                <div class="footer-hearts story-heart">♥ ♥ ♥ ♥ ♥</div>
+                <!-- قلوب -->
+                <div class="footer-hearts">♥ ♥ ♥ ♥ ♥</div>
 
-                <!-- أسماء العرسان مع خاتم الزفاف -->
-                <div class="footer-names footer-message">
+                <!-- أسماء العرسان -->
+                <div class="footer-names">
                     مازن
                     <span class="ring-icon">
-                        &
+                        <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="32" r="18" fill="none" stroke="#c8a45d" stroke-width="3"/>
+                            <circle cx="30" cy="32" r="10" fill="none" stroke="#c8a45d" stroke-width="2.5" opacity="0.5"/>
+                            <circle cx="30" cy="32" r="4" fill="#e8bd55" opacity="0.8"/>
+                            <line x1="20" y1="50" x2="40" y2="50" stroke="#c8a45d" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+                            <circle cx="25" cy="27" r="1.5" fill="white" opacity="0.4"/>
+                        </svg>
                     </span>
                     دانا
                 </div>
 
                 <div class="footer-divider"></div>
 
-                <!-- العبارة الرئيسية -->
+                <!-- العبارة -->
                 <div class="footer-message">
-                    بكلِّ المحبَّة نتطّع إلى لقائِكُم
-                    <span class="heart story-heart">♥</span>
+                    بكلِّ المحبَّة نتطلعَّ إلى لقائكم
+                    <span class="heart">♥</span>
                 </div>
 
                 <!-- التاريخ -->
-                <div class="footer-date">
-                    2026 / 7 / 25  
-                </div>
+                <div class="footer-date">2026 / 7 / 25</div>
 
-                <!-- أمان -->
-                <div class=" footer-date footer-message line diamond"> السبت </div>
+                <!-- اليوم -->
+                <div class="footer-day">السبت</div>
 
-                <!-- حمام صغير -->
+                <!-- حمام -->
                 <div class="footer-dove-icon">🕊  🕊  🕊</div>
 
                 <!-- زخرفة سفلية -->
@@ -2477,11 +2369,12 @@
         </div>
     </div>
 
-    <!-- ===== مشغل الموسيقى الخلفية - تصميم ذهبي أنيق ===== -->
+    <!-- ===== مشغل الموسيقى ===== -->
     <div id="musicPlayer">
         <button id="musicToggle">
             <span id="musicIcon">♬</span>
         </button>
+        <span id="musicLabel">🎵 Tiny Dancer <span class="heart">♥</span></span>
     </div>
 
     <!-- ===== ملف الصوت ===== -->
@@ -2491,7 +2384,7 @@
 
     <script>
         // ============================================================
-        //  تشغيل الموسيقى الخلفية من ملف MP3
+        //  تشغيل الموسيقى الخلفية
         // ============================================================
         (function() {
             const audio = document.getElementById('bgMusic');
@@ -2499,20 +2392,16 @@
             const icon = document.getElementById('musicIcon');
             const player = document.getElementById('musicPlayer');
             let isPlaying = false;
-            let isContentOpen = false;
 
             // مراقبة فتح المحتوى
             const observer = new MutationObserver(function() {
                 if (document.body.classList.contains('content-open')) {
-                    isContentOpen = true;
                     setTimeout(() => {
                         player.classList.add('show');
-                        // محاولة تشغيل تلقائي بعد فتح المحتوى
                         if (!isPlaying) {
                             audio.play().then(() => {
                                 isPlaying = true;
                                 icon.textContent = '♬';
-                                console.log('♬ تم تشغيل الموسيقى تلقائياً');
                             }).catch(() => {});
                         }
                     }, 1600);
@@ -2521,9 +2410,7 @@
             });
             observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-            // إذا كان المحتوى مفتوحاً بالفعل
             if (document.body.classList.contains('content-open')) {
-                isContentOpen = true;
                 setTimeout(() => {
                     player.classList.add('show');
                     if (!isPlaying) {
@@ -2555,7 +2442,6 @@
                 toggleMusic();
             });
 
-            // عند انتهاء الأغنية، تعيد تشغيلها
             audio.addEventListener('ended', function() {
                 if (isPlaying) {
                     audio.play();
