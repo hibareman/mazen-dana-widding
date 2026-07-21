@@ -2122,6 +2122,51 @@
                 padding: 0 10px;
             }
         }
+        /* --- PRELOADER --- */
+.preloader {
+    display: flex;
+    visibility: visible;
+    opacity: 1;
+    z-index: 9999;
+    height: 100vh;
+    min-height: 100vh;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #3a210d 0%, #180b05 50%, #080403 100%);
+}
+body.content-open .preloader {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none;
+}
+.preloader::before {
+    content: "";
+    position: absolute;
+    width: 650px;
+    height: 650px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(230, 185, 75, .18), transparent 65%);
+    animation: goldPulse 9s infinite ease-in-out;
+}
+.particles {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+.particle {
+    position: absolute;
+    background: #e8bd55;
+    border-radius: 50%;
+    opacity: 0;
+    box-shadow: 0 0 10px rgba(232, 189, 85, .65);
+    animation: goldDust 25s infinite ease-in-out;
+}
     </style>
 </head>
 <body>
