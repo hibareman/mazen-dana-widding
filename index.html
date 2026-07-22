@@ -1514,6 +1514,160 @@
             margin-bottom: 12px;
         }
 
+        /* --- ADMIN RESPONSE DETAILS MODAL --- */
+        .admin-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .admin-table tbody tr:hover {
+            background: #f8f1e8;
+            box-shadow: inset 4px 0 0 #c8a45d;
+        }
+        .admin-table tbody tr:focus-visible {
+            outline: 3px solid rgba(200, 164, 93, 0.45);
+            outline-offset: -3px;
+            background: #f8f1e8;
+        }
+
+        .response-details-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(35, 24, 17, 0.62);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .response-details-overlay.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .response-details-card {
+            width: min(100%, 570px);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            position: relative;
+            background: linear-gradient(145deg, #fffdf9 0%, #f8f1e9 100%);
+            border: 1px solid rgba(200, 164, 93, 0.30);
+            border-radius: 28px;
+            padding: 34px 30px 30px;
+            box-shadow: 0 30px 90px rgba(30, 18, 10, 0.30);
+            color: #3d2c1f;
+            text-align: right;
+            transform: translateY(24px) scale(0.96);
+            transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .response-details-overlay.show .response-details-card {
+            transform: translateY(0) scale(1);
+        }
+        .response-details-close {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(166, 124, 78, 0.24);
+            border-radius: 50%;
+            background: #fffaf4;
+            color: #7a5d3a;
+            font-size: 27px;
+            line-height: 1;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .response-details-close:hover {
+            transform: rotate(8deg) scale(1.06);
+            background: #f1e5d7;
+        }
+        .response-details-title {
+            color: #8f6b3f;
+            font-size: 30px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 0 45px;
+        }
+        .response-details-row {
+            padding: 17px 18px;
+            margin-bottom: 14px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(200, 164, 93, 0.16);
+            border-radius: 18px;
+        }
+        .response-details-label {
+            display: block;
+            margin-bottom: 7px;
+            color: #9a7a55;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .response-details-name {
+            color: #3d2c1f;
+            font-size: 25px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .response-details-status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 20px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .response-details-status.yes {
+            background: #dce8d5;
+            color: #2d6a3a;
+        }
+        .response-details-status.no {
+            background: #f0ddd5;
+            color: #8f4f3f;
+        }
+        .response-details-message {
+            min-height: 82px;
+            color: #594231;
+            font-size: 20px;
+            line-height: 1.9;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+        body.response-modal-open {
+            overflow: hidden !important;
+        }
+
+        @media(max-width: 600px) {
+            .response-details-overlay {
+                padding: 12px;
+            }
+            .response-details-card {
+                padding: 30px 18px 22px;
+                border-radius: 22px;
+            }
+            .response-details-title {
+                font-size: 25px;
+                margin-bottom: 20px;
+            }
+            .response-details-name {
+                font-size: 22px;
+            }
+            .response-details-message {
+                font-size: 18px;
+                line-height: 1.8;
+            }
+        }
+
         /* --- ANIMATIONS --- */
         @keyframes writeLetter {
             0% {
@@ -2395,6 +2549,47 @@ body.content-open .preloader {
         </div>
     </div>
 
+    <!-- ==========================================================
+    ADMIN RESPONSE DETAILS CARD
+    ========================================================== -->
+    <div
+        class="response-details-overlay"
+        id="responseDetailsOverlay"
+        aria-hidden="true"
+    >
+        <article
+            class="response-details-card"
+            id="responseDetailsCard"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="responseDetailsTitle"
+        >
+            <button
+                type="button"
+                class="response-details-close"
+                id="responseDetailsClose"
+                aria-label="إغلاق تفاصيل الرد"
+            >×</button>
+
+            <h2 class="response-details-title" id="responseDetailsTitle">تفاصيل رد الضيف</h2>
+
+            <div class="response-details-row">
+                <span class="response-details-label">الاسم</span>
+                <div class="response-details-name" id="responseDetailsName">—</div>
+            </div>
+
+            <div class="response-details-row">
+                <span class="response-details-label">حالة الحضور</span>
+                <span class="response-details-status" id="responseDetailsStatus">—</span>
+            </div>
+
+            <div class="response-details-row">
+                <span class="response-details-label">الرسالة</span>
+                <div class="response-details-message" id="responseDetailsMessage">—</div>
+            </div>
+        </article>
+    </div>
+
     <!-- ===== مشغل الموسيقى ===== -->
     <div id="musicPlayer">
         <button id="musicToggle">
@@ -2677,6 +2872,68 @@ body.content-open .preloader {
             alert('تم نقل الردود القديمة إلى قاعدة البيانات المشتركة بنجاح.');
         }
 
+        let adminResponses = [];
+
+        const responseDetailsOverlay = document.getElementById('responseDetailsOverlay');
+        const responseDetailsCard = document.getElementById('responseDetailsCard');
+        const responseDetailsClose = document.getElementById('responseDetailsClose');
+        const responseDetailsName = document.getElementById('responseDetailsName');
+        const responseDetailsStatus = document.getElementById('responseDetailsStatus');
+        const responseDetailsMessage = document.getElementById('responseDetailsMessage');
+        const adminTableBody = document.getElementById('adminTableBody');
+
+        function openResponseDetails(response) {
+            if (!response) return;
+
+            responseDetailsName.textContent = response.name || '—';
+            responseDetailsStatus.textContent = response.attending ? '✅ سيأتي' : '❌ لن يأتي';
+            responseDetailsStatus.className = `response-details-status ${response.attending ? 'yes' : 'no'}`;
+            responseDetailsMessage.textContent = response.message?.trim() || 'لم يترك الضيف رسالة.';
+
+            responseDetailsOverlay.classList.add('show');
+            responseDetailsOverlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('response-modal-open');
+
+            window.setTimeout(() => responseDetailsClose.focus(), 50);
+        }
+
+        function closeResponseDetails() {
+            responseDetailsOverlay.classList.remove('show');
+            responseDetailsOverlay.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('response-modal-open');
+        }
+
+        adminTableBody.addEventListener('click', function(event) {
+            const row = event.target.closest('tr[data-response-index]');
+            if (!row) return;
+
+            openResponseDetails(adminResponses[Number(row.dataset.responseIndex)]);
+        });
+
+        adminTableBody.addEventListener('keydown', function(event) {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+
+            const row = event.target.closest('tr[data-response-index]');
+            if (!row) return;
+
+            event.preventDefault();
+            openResponseDetails(adminResponses[Number(row.dataset.responseIndex)]);
+        });
+
+        responseDetailsClose.addEventListener('click', closeResponseDetails);
+
+        responseDetailsOverlay.addEventListener('click', function(event) {
+            if (event.target === responseDetailsOverlay) {
+                closeResponseDetails();
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && responseDetailsOverlay.classList.contains('show')) {
+                closeResponseDetails();
+            }
+        });
+
         async function renderAdmin() {
             if (adminRequestInProgress) {
                 return;
@@ -2699,28 +2956,36 @@ body.content-open .preloader {
                 document.getElementById('statNotComing').textContent = notComing;
 
                 if (total === 0) {
+                    adminResponses = [];
                     tbody.innerHTML = '';
                     setAdminEmpty('لا توجد ردود حتى الآن');
                     return;
                 }
 
                 empty.style.display = 'none';
+                adminResponses = responses;
                 tbody.innerHTML = responses.map((r, idx) => {
                     const statusText = r.attending ? '✅ سيأتي' : '❌ لن يأتي';
                     const badgeClass = r.attending ? 'yes' : 'no';
                     const msg = r.message || '—';
 
                     return `
-                        <tr>
+                        <tr
+                            data-response-index="${idx}"
+                            role="button"
+                            tabindex="0"
+                            aria-label="عرض تفاصيل رد ${escapeHtml(r.name)}"
+                        >
                             <td>${idx + 1}</td>
                             <td><strong>${escapeHtml(r.name)}</strong></td>
                             <td><span class="status-badge ${badgeClass}">${statusText}</span></td>
-                            <td><span class="msg-preview" title="${escapeHtml(msg)}">${escapeHtml(msg)}</span></td>
+                            <td><span class="msg-preview">${escapeHtml(msg)}</span></td>
                         </tr>
                     `;
                 }).join('');
             } catch (error) {
                 console.error('Admin load failed:', error);
+                adminResponses = [];
                 tbody.innerHTML = '';
 
                 setAdminEmpty('تعذّر تحميل الردود. تحقق من الاتصال وإعدادات الخادم.', '⚠️');
